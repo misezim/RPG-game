@@ -1,4 +1,4 @@
-from random import randint, choice
+from random import randint, choice, random
 
 
 class GameEntity:
@@ -91,8 +91,11 @@ class Magic(Hero):
         super().__init__(name, health, damage, 'BOOST')
 
     def apply_super_power(self, boss, heroes):
-        pass
-        # TODO Here will be implementation of BOOSTING
+        boost_amount = 0
+        for hero in heroes:
+            if hero.health > 0 and self != hero:
+                hero.damage += randint(5, 10)
+        print(f'Magic {self.name} boosted every heroes power to attack for {hero.damage}.')
 
 
 class Berserk(Hero):
@@ -122,6 +125,38 @@ class Medic(Hero):
         for hero in heroes:
             if hero.health > 0 and self != hero:
                 hero.health += self.__heal_points
+
+class Witcher(Hero):
+    def __init__(self, name, health):
+        super().__init__(name, health, 0, 'SAVE')
+    def apply_super_power(self, boss, heroes):
+        dead_heroes = []
+        for hero in heroes:
+            if hero.health <= 0:
+                dead_heroes.append(hero)
+        if dead_heroes and randint(1, 2) == 1:
+            first_dead_hero = dead_heroes[0]
+            first_dead_hero.health = first_dead_hero.health + self.health  # Give all life to the first dead hero
+            print(f'Witcher {self.name} sacrificed himself to save {first_dead_hero.name}.')
+            self.health = 0  # Witcher dies
+
+        else:
+            print(f'Witcher {self.name} could not save anyone.')
+
+
+class Hacker(Hero):
+    def __init__(self, name, health, damage):
+        super().__init__(name, health, damage, ability='STEAL')
+
+    def apply_super_power(self, boss, heroes):
+        if boss.health > 0:
+            stolen_points = randint(5, 10)
+            boss.health -= stolen_points
+        live_heroes = [hero for hero in heroes if hero.health > 0]
+        if live_heroes:
+            hero_to_heal = choice(live_heroes)  # Случайный живой герой
+            hero_to_heal.health = hero_to_heal.health + stolen_points
+        print(f'Hacker {self.name} stole {stolen_points} and gave it to {hero_to_heal.name}.')
 
 
 round_number = 0
@@ -169,7 +204,9 @@ def start_game():
     berserk = Berserk(name='Guts', health=260, damage=5)
     doc = Medic(name='Aibolit', health=250, damage=5, heal_points=15)
     assistant = Medic(name='Kristin', health=300, damage=5, heal_points=5)
-    heroes_list = [warrior_1, doc, warrior_2, magic, berserk, assistant]
+    witcher = Witcher(name='Gerald', health=500)
+    hacker = Hacker(name='Zuckerberg', health=200, damage=5)
+    heroes_list = [warrior_1, doc, warrior_2, magic, berserk, assistant, witcher, hacker]
 
     show_statistics(boss, heroes_list)
     while not is_game_over(boss, heroes_list):
